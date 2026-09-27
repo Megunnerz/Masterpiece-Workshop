@@ -213,7 +213,7 @@
     </div>
     <div class="field">
       <label for="phone">Parent phone number</label>
-      <input id="phone" type="tel" placeholder="(555) 123-4567">
+      <input id="phone" type="tel" placeholder="(555) 123-4567" required>
     </div>
 
     <div class="pay-box">
@@ -442,9 +442,9 @@
       box.textContent = 'Pick a session and date first!';
       return;
     }
-    if(!name || !email){
+    if(!name || !email || !phone){
       box.style.display='block'; box.style.background='var(--coral)';
-      box.textContent = "Almost! Add the builder's name and a parent email.";
+      box.textContent = "Almost! Add the builder's name, a parent email, and a phone number.";
       return;
     }
     const ageRange = (SESSIONS[state.session].ages || {})[state.slot];
