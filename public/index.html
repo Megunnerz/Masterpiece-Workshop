@@ -211,6 +211,10 @@
       <label for="email">Parent email</label>
       <input id="email" type="email" placeholder="you@example.com">
     </div>
+    <div class="field">
+      <label for="phone">Parent phone number</label>
+      <input id="phone" type="tel" placeholder="(555) 123-4567">
+    </div>
 
     <div class="pay-box">
       <h4>Reserve your spot</h4>
@@ -429,6 +433,7 @@
     const name = document.getElementById('kidName').value.trim();
     const age = document.getElementById('kidAge').value;
     const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
     const box = document.getElementById('confirm');
     box.style.display='none';
 
@@ -461,7 +466,7 @@
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           sessionKey: state.session, slot: state.slot, date: state.date,
-          name, age: age ? Number(age) : null, email
+          name, age: age ? Number(age) : null, email, phone: phone || null
         })
       });
       const data = await res.json();
