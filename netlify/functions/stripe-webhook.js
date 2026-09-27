@@ -51,7 +51,7 @@ exports.handler = async (event) => {
       .from('bookings')
       .update({ status: 'paid' })
       .eq('stripe_session_id', session.id)
-      .select('name, age, email, phone, session_key, slot, session_date, amount_cents')
+      .select('name, age, email, phone, parent_name, session_key, slot, session_date, amount_cents')
       .single();
 
     if (error) {
@@ -66,7 +66,8 @@ exports.handler = async (event) => {
           <p>${SESSION_LABELS[data.session_key] || data.session_key}<br>
              ${data.session_date} · ${SLOT_LABELS[data.slot] || data.slot}</p>
           <p><strong>Paid:</strong> $${amount}</p>
-          <p><strong>Parent email:</strong> ${data.email}<br>
+          <p><strong>Parent:</strong> ${data.parent_name || '—'}<br>
+             <strong>Parent email:</strong> ${data.email}<br>
              <strong>Phone:</strong> ${data.phone || '—'}</p>
         `,
       });

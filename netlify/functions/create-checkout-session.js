@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'Bad request body' }) };
   }
 
-  const { sessionKey, slot, date, name, age, email, phone } = body;
+  const { sessionKey, slot, date, name, age, email, phone, parentName } = body;
 
   if (!sessionKey || !slot || !date || !name || !email) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields' }) };
@@ -65,6 +65,7 @@ exports.handler = async (event) => {
     p_age: age || null,
     p_email: email,
     p_phone: phone || null,
+    p_parent_name: parentName || null,
   });
 
   if (claimError) {
