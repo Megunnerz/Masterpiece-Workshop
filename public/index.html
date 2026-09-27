@@ -162,21 +162,21 @@
       <div class="stripe" style="background:var(--teal)"></div>
       <span class="emoji">🔨</span>
       <h3>Monday Night Build</h3>
-      <p>Mondays · 6:00–8:00pm · 2 hours</p>
+      <p>Mondays · 6:00–8:00pm · 2 hours · Ages 6–9</p>
       <div class="price"><s>$75</s>$50 / session</div>
     </div>
     <div class="card" data-key="fri">
       <div class="stripe" style="background:var(--violet)"></div>
       <span class="emoji">🪚</span>
       <h3>Friday Night Build</h3>
-      <p>Fridays · 6:00–8:00pm · 2 hours</p>
+      <p>Fridays · 6:00–8:00pm · 2 hours · Ages 10–12</p>
       <div class="price"><s>$75</s>$50 / session</div>
     </div>
     <div class="card" data-key="sat">
       <div class="stripe" style="background:var(--coral)"></div>
       <span class="emoji">🎨</span>
-      <h3>Saturday Workshop</h3>
-      <p>Saturdays · 9–11am or 4–6pm</p>
+      <h3>Saturday Build</h3>
+      <p>Saturdays · 10am–12pm (ages 6–9) or 4–6pm (ages 10–12)</p>
       <div class="price"><s>$75</s>$50 / session</div>
     </div>
   </div>
@@ -184,7 +184,7 @@
   <div class="panel" id="bookingPanel">
     <h3 id="panelTitle">Choose a date</h3>
     <div class="slot-toggle" id="satToggle" style="display:none;">
-      <div class="slot-btn active" data-slot="am">9:00–11:00am</div>
+      <div class="slot-btn active" data-slot="am">10:00am–12:00pm</div>
       <div class="slot-btn" data-slot="pm">4:00–6:00pm</div>
     </div>
 
@@ -203,7 +203,7 @@
         <input id="kidName" placeholder="First name">
       </div>
       <div class="field">
-        <label for="kidAge">Age</label>
+        <label for="kidAge" id="kidAgeLabel">Age</label>
         <input id="kidAge" type="number" min="6" max="12" placeholder="6–12">
       </div>
     </div>
@@ -256,9 +256,9 @@
 
 <script>
   const SESSIONS = {
-    mon: { label:'Monday Night Build', weekday:1, times:{main:'6:00–8:00pm'} },
-    fri: { label:'Friday Night Build', weekday:5, times:{main:'6:00–8:00pm'} },
-    sat: { label:'Saturday Workshop', weekday:6, times:{am:'9:00–11:00am', pm:'4:00–6:00pm'} }
+    mon: { label:'Monday Night Build', weekday:1, times:{main:'6:00–8:00pm'}, ages:{main:{min:6,max:9}} },
+    fri: { label:'Friday Night Build', weekday:5, times:{main:'6:00–8:00pm'}, ages:{main:{min:10,max:12}} },
+    sat: { label:'Saturday Build', weekday:6, times:{am:'10:00am–12:00pm', pm:'4:00–6:00pm'}, ages:{am:{min:6,max:9}, pm:{min:10,max:12}} }
   };
   const CAP = 10;
   const RANGE_START = '2026-11-01';
@@ -312,6 +312,7 @@
     state.date = null;
     satToggle.style.display = state.session === 'sat' ? 'flex' : 'none';
     document.querySelectorAll('.slot-btn').forEach((b,i)=>b.classList.toggle('active', i===0));
+    updateAgeField();
     panelTitle.textContent = SESSIONS[state.session].label + ' — pick a date';
     panel.classList.add('show');
     confirmBtn.disabled = false;
@@ -326,6 +327,7 @@
       btn.classList.add('active');
       state.slot = btn.dataset.slot;
       state.date = null;
+      updateAgeField();
       loadAvailability();
     });
   });
@@ -400,6 +402,22 @@
     updateSpotsNote();
   }
 
+  function updateAgeField(){
+    const ageInput = document.getElementById('kidAge');
+    const ageLabel = document.getElementById('kidAgeLabel');
+    if(!state.session){ return; }
+    const ages = (SESSIONS[state.session].ages || {})[state.slot];
+    if(!ages){ return; }
+    ageInput.min = ages.min;
+    ageInput.max = ages.max;
+    ageInput.placeholder = ages.min + '–' + ages.max;
+    if(ageLabel){ ageLabel.textContent = 'Age (' + ages.min + '–' + ages.max + ')'; }
+    const val = Number(ageInput.value);
+    if(ageInput.value && (val < ages.min || val > ages.max)){
+      ageInput.value = '';
+    }
+  }
+
   function updateSpotsNote(){
     if(!state.date){ spotsNote.textContent = 'Pick a highlighted date above.'; return; }
     const left = state.spotsLeft[state.date] === undefined ? CAP : state.spotsLeft[state.date];
@@ -423,6 +441,15 @@
       box.style.display='block'; box.style.background='var(--coral)';
       box.textContent = "Almost! Add the builder's name and a parent email.";
       return;
+    }
+    const ageRange = (SESSIONS[state.session].ages || {})[state.slot];
+    if(ageRange){
+      const ageNum = Number(age);
+      if(!age || isNaN(ageNum) || ageNum < ageRange.min || ageNum > ageRange.max){
+        box.style.display='block'; box.style.background='var(--coral)';
+        box.textContent = 'This session is for ages ' + ageRange.min + '–' + ageRange.max + '. Please enter an age in that range.';
+        return;
+      }
     }
 
     confirmBtn.disabled = true;
