@@ -22,11 +22,11 @@ const supabase = createClient(
 const SESSION_LABELS = {
   mon: 'Monday Night Build',
   fri: 'Friday Night Build',
-  sat: 'Saturday Workshop',
+  sat: 'Saturday Build',
 };
 const SLOT_LABELS = {
   main: '6:00–8:00pm',
-  am: '9:00–11:00am',
+  am: '10:00am–12:00pm',
   pm: '4:00–6:00pm',
 };
 
