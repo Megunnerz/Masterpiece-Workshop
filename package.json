@@ -1,0 +1,11 @@
+{
+  "name": "masterpiece-workshop-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Netlify Functions backend for Masterpiece Workshop bookings (Stripe + Supabase + email notifications)",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "stripe": "^16.0.0",
+    "resend": "^4.0.0"
+  }
+}

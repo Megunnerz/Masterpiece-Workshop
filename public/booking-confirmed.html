@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Booking Confirmed — Masterpiece Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sunny:#ffc93c; --sunny-dark:#e8a800; --coral:#ff5e5b; --coral-dark:#d5312e;
+    --teal:#00c2a8; --teal-dark:#008f7a; --violet:#7b5cff; --walnut:#3d2314; --ink:#241408;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;min-height:100vh;background:linear-gradient(135deg,var(--violet) 0%, var(--coral) 55%, var(--sunny) 100%);
+    color:var(--ink);font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{background:#fff;border-radius:22px;max-width:480px;width:100%;padding:38px 32px;text-align:center;
+    border:4px solid var(--walnut);box-shadow:8px 10px 0 rgba(61,35,20,.35);}
+  h1{font-family:'Baloo 2',sans-serif;font-size:1.7rem;color:var(--walnut);margin:6px 0 10px;}
+  .brand{font-family:'Baloo 2',sans-serif;font-weight:800;color:var(--violet);font-size:1.1rem;margin-bottom:14px;}
+  .icon{font-size:3rem;}
+  p{color:#5a4636;font-weight:600;line-height:1.5;}
+  .detail{background:#fdf3e0;border-radius:12px;padding:16px;margin:18px 0;font-weight:700;color:var(--walnut);}
+  a.home{display:inline-block;margin-top:12px;font-family:'Baloo 2';font-weight:700;color:#fff;background:var(--teal);
+    padding:12px 24px;border-radius:12px;text-decoration:none;box-shadow:0 6px 0 var(--teal-dark);}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">Masterpiece Workshop</div>
+    <div id="content">
+      <div class="icon">⏳</div>
+      <h1>Confirming your payment…</h1>
+      <p>Hang tight a moment while we hear back from Stripe.</p>
+    </div>
+  </div>
+
+<script>
+  const SESSIONS = {
+    mon: 'Monday Night Build', fri: 'Friday Night Build', sat: 'Saturday Workshop'
+  };
+  const SLOTS = { main: '6:00–8:00pm', am: '9:00–11:00am', pm: '4:00–6:00pm' };
+
+  const params = new URLSearchParams(window.location.search);
+  const bookingId = params.get('booking_id');
+  const content = document.getElementById('content');
+
+  function render(status, data){
+    if(status === 'paid'){
+      content.innerHTML = `
+        <div class="icon">🎉</div>
+        <h1>You're booked, ${data.name}!</h1>
+        <div class="detail">${SESSIONS[data.sessionKey]}<br>${data.date} · ${SLOTS[data.slot]}</div>
+        <p>A confirmation has been recorded — see you at the workbench!</p>
+        <a class="home" href="/">Back to Masterpiece Workshop</a>`;
+    } else if(status === 'pending'){
+      content.innerHTML = `
+        <div class="icon">⏳</div>
+        <h1>Still confirming…</h1>
+        <p>Your payment is processing. This page will update automatically — no need to refresh.</p>`;
+    } else {
+      content.innerHTML = `
+        <div class="icon">❓</div>
+        <h1>We couldn't confirm that booking</h1>
+        <p>If you completed payment, check your email for a Stripe receipt, or contact us and we'll sort it out.</p>
+        <a class="home" href="/#contact">Contact us</a>`;
+    }
+  }
+
+  async function poll(attempt){
+    if(!bookingId){
+      content.innerHTML = `<div class="icon">❓</div><h1>No booking reference found</h1><p>If you just paid, check your email for a receipt.</p><a class="home" href="/">Back home</a>`;
+      return;
+    }
+    try{
+      const res = await fetch('/.netlify/functions/booking-status?booking_id='+encodeURIComponent(bookingId));
+      const data = await res.json();
+      if(!res.ok){ render('notfound', data); return; }
+      render(data.status, data);
+      if(data.status === 'pending' && attempt < 8){
+        setTimeout(()=>poll(attempt+1), 2000);
+      }
+    }catch(e){
+      if(attempt < 8) setTimeout(()=>poll(attempt+1), 2000);
+    }
+  }
+  poll(0);
+</script>
+</body>
+</html>
