@@ -51,7 +51,7 @@ exports.handler = async (event) => {
   const d = new Date(date + 'T00:00:00Z');
   const BOOKABLE_START = new Date('2026-11-01T00:00:00Z');
   const BOOKABLE_END = new Date('2026-12-31T23:59:59Z');
-  const CLOSED_DATES = new Set(['2026-12-25', '2026-12-26']);
+  const CLOSED_DATES = new Set(['2026-11-27', '2026-11-28', '2026-12-25', '2026-12-26']);
   if (d < BOOKABLE_START || d > BOOKABLE_END || CLOSED_DATES.has(date)) {
     return { statusCode: 400, body: JSON.stringify({ error: 'That date is not bookable' }) };
   }
