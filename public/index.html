@@ -255,7 +255,7 @@ nav.mainnav a.social-link svg{width:20px;height:20px;}
       <button id="nextMonth" type="button">›</button>
     </div>
     <div class="cal-grid" id="calGrid"></div>
-    <p style="text-align:center;font-size:.82rem;color:#a89a89;font-weight:600;margin:0 0 4px;">Sessions are scheduled through December 2026 — later dates show as TBD until they're planned. Closed Dec 25–26 for the holiday.</p>
+    <p style="text-align:center;font-size:.82rem;color:#a89a89;font-weight:600;margin:0 0 4px;">Sessions are scheduled through December 2026 — later dates show as TBD until they're planned. Closed Nov 27–28 (Thanksgiving weekend) and Dec 25–26 for the holidays.</p>
     <div class="spots-note" id="spotsNote"></div>
 
     <div class="row">
@@ -358,7 +358,7 @@ nav.mainnav a.social-link svg{width:20px;height:20px;}
   // outside that window shows as TBD instead of bookable.
   const BOOKABLE_START = new Date(2026,10,1);   // Nov 1, 2026
   const BOOKABLE_END   = new Date(2026,11,31);  // Dec 31, 2026
-  const CLOSED_DATES = new Set(['2026-12-25','2026-12-26']); // Christmas break
+  const CLOSED_DATES = new Set(['2026-11-27','2026-11-28','2026-12-25','2026-12-26']); // Thanksgiving weekend + Christmas break
   const MIN_VIEW = {year:2026, month:10}; // Nov 2026 — can't navigate before this
 
   function fmtDate(y,m,d){
