@@ -1,10 +1,10 @@
-// netlify/functions/_notify.js
+// netlify/functions/lib/notify.js
 //
-// Small shared helper for sending you an email notification via Resend.
-// Used by stripe-webhook.js (new paid booking) and contact.js (new
-// message). Never throws — a notification failure should never break the
-// booking or the contact form itself, so callers just fire-and-forget
-// (or await + ignore errors) this.
+// Small shared helper for sending emails via Resend.
+//   - sendNotification: email to YOU (new paid booking, new contact message).
+//   - sendCustomerEmail: email to a parent (booking confirmation).
+// Neither ever throws — an email failure should never break the booking or
+// the contact form itself, so callers just await and ignore errors.
 
 const { Resend } = require('resend');
 
@@ -14,6 +14,11 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 // Once you verify mymasterpieceworkshop.com in Resend (see SETUP.md),
 // switch FROM_EMAIL to something like "bookings@mymasterpieceworkshop.com".
 const FROM_EMAIL = process.env.NOTIFY_FROM_EMAIL || 'Masterpiece Workshop <onboarding@resend.dev>';
+
+// Parent-facing emails always come from the verified business domain.
+const CUSTOMER_FROM_EMAIL =
+  process.env.CUSTOMER_FROM_EMAIL || 'Masterpiece Workshop <bookings@mymasterpieceworkshop.com>';
+const REPLY_TO = process.env.CUSTOMER_REPLY_TO || 'info@mymasterpieceworkshop.com';
 
 async function sendNotification({ subject, html }) {
   const to = process.env.NOTIFY_EMAIL;
@@ -30,4 +35,24 @@ async function sendNotification({ subject, html }) {
   }
 }
 
-module.exports = { sendNotification };
+async function sendCustomerEmail({ to, subject, html, text }) {
+  if (!resend || !to) {
+    console.warn('Customer email not sent (missing RESEND_API_KEY or recipient) — skipping.');
+    return;
+  }
+  try {
+    const { error } = await resend.emails.send({
+      from: CUSTOMER_FROM_EMAIL,
+      to,
+      replyTo: REPLY_TO,
+      subject,
+      html,
+      text,
+    });
+    if (error) console.error('Resend rejected customer email', error);
+  } catch (e) {
+    console.error('Failed to send customer email', e);
+  }
+}
+
+module.exports = { sendNotification, sendCustomerEmail };
