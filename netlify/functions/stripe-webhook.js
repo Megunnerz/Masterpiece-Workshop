@@ -2,7 +2,7 @@
 //
 // Stripe calls this URL directly (not the browser) whenever something
 // happens to a Checkout Session. We listen for two events:
-//   - checkout.session.completed  -> mark the booking "paid", email you
+//   - checkout.session.completed  -> mark the booking "paid", email the parent + you
 //   - checkout.session.expired    -> mark the booking "expired" (frees the seat)
 //
 // This is the only place a booking is ever marked "paid" — never trust a
@@ -11,7 +11,8 @@
 
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
-const { sendNotification } = require('./lib/notify');
+const { sendNotification, sendCustomerEmail } = require('./lib/notify');
+const { buildConfirmationEmail } = require('./lib/confirmation-email');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabase = createClient(
@@ -47,6 +48,16 @@ exports.handler = async (event) => {
 
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object;
+
+    // Stripe can deliver the same event more than once. If this booking was
+    // already marked paid, don't email the parent a second time.
+    const { data: existing } = await supabase
+      .from('bookings')
+      .select('status')
+      .eq('stripe_session_id', session.id)
+      .maybeSingle();
+    const alreadyPaid = !!existing && existing.status === 'paid';
+
     const { data, error } = await supabase
       .from('bookings')
       .update({ status: 'paid' })
@@ -56,8 +67,13 @@ exports.handler = async (event) => {
 
     if (error) {
       console.error('failed to mark booking paid', error);
-    } else if (data) {
+    } else if (data && !alreadyPaid) {
       const amount = (data.amount_cents / 100).toFixed(2);
+
+      // Confirmation email to the parent (all the booking details).
+      await sendCustomerEmail({ to: data.email, ...buildConfirmationEmail(data) });
+
+      // Notification email to you.
       await sendNotification({
         subject: `New paid booking: ${data.name} — ${SESSION_LABELS[data.session_key] || data.session_key}`,
         html: `
