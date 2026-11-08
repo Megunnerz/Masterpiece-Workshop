@@ -353,7 +353,7 @@ nav.mainnav a.social-link svg{width:20px;height:20px;}
   const spotsNote = document.getElementById('spotsNote');
   const confirmBtn = document.getElementById('confirmBtn');
 
-  const TODAY = new Date(2026,8,27); // Sun 2026-09-27, "today" per current date
+  const TODAY = (function(){ const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); })(); // real "today" (local midnight) so past dates are blocked
   // Sessions are only scheduled for November and December 2026; anything
   // outside that window shows as TBD instead of bookable.
   const BOOKABLE_START = new Date(2026,10,1);   // Nov 1, 2026
