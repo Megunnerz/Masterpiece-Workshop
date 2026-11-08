@@ -56,6 +56,12 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'That date is not bookable' }) };
   }
 
+  // Past dates can't be booked (compared against today's date in Texas time)
+  const todayCT = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < todayCT) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'That date has already passed' }) };
+  }
+
   // 1. Claim a seat (atomic — safe against two people booking at once)
   const { data: claimRows, error: claimError } = await supabase.rpc('claim_slot', {
     p_session_key: sessionKey,
